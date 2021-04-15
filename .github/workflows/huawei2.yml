@@ -19,9 +19,6 @@ jobs:
     - name: requirements
       run: |
         pip3 install -r requirements.txt
-    - name: Run TEXTNOW ZOUHUA
-      run: |
-        python3 main.py --client textnow --username ${{ secrets.EU_USERNAME }} --password ${{ secrets.EU_PASSWORD }}
-    - name: Run TEXTNOW CAOYUFEI
+    - name: Run TEXTNOW MAXIAOBO
       run: |
         python3 main.py --client textnow --username ${{ secrets.EU_USERNAME }} --password ${{ secrets.EU_PASSWORD }}
