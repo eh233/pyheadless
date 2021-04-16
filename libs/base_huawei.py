@@ -1,10 +1,12 @@
 import asyncio
+import json
 import os
 import random
 import string
 import time
 
 import requests
+from pyppeteer.network_manager import Request, Response
 
 from libs.base import BaseClient
 
@@ -205,7 +207,7 @@ class BaseHuaWei(BaseClient):
         await self.page.click('.modal.in .modal-footer .devui-btn')
         await asyncio.sleep(5)
         page_list = await self.browser.pages()
-        await page_list[-1].setViewport({'width': self.width, 'height': self.height})
+        await page_list[-1].setViewport({'width': self.width + 560, 'height': self.height})
         return page_list[-1]
 
     async def close_page(self):
@@ -216,7 +218,7 @@ class BaseHuaWei(BaseClient):
                 await page.close()
 
     async def api_explorer_task(self):
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
         html = str(await self.task_page.JJeval('.userInfo', '(els) => els.map(el => el.outerHTML)'))
         if html.find('English') != -1:
             items = await self.task_page.querySelectorAll('.userInfo')
@@ -224,6 +226,12 @@ class BaseHuaWei(BaseClient):
             await asyncio.sleep(2)
             await self.task_page.click('.cdk-overlay-container .dropdown-item')
             await asyncio.sleep(5)
+
+        url = 'https://apiexplorer.developer.huaweicloud.com/apiexplorer/overview'
+        if self.task_page.url == url:
+            url = 'https://apiexplorer.developer.huaweicloud.com/apiexplorer/doc?product=DevStar&api=ListPublishedTemplates'
+            await self.task_page.goto(url, {'waitUntil': 'load'})
+            await asyncio.sleep(3)
 
         await self.task_page.click('#debug')
         await asyncio.sleep(3)
@@ -595,29 +603,50 @@ class BaseHuaWei(BaseClient):
 
         await asyncio.sleep(15)
 
-
     async def delete_function(self):
         page = await self.browser.newPage()
-        url_list = ['https://console.huaweicloud.com/functiongraph/?region=cn-north-4#/serverless/functionList',
-                    'https://console.huaweicloud.com/functiongraph/?region=cn-south-1#/serverless/functionList']
+
+        url_list = ['https://console.huaweicloud.com/functiongraph/?region=cn-south-1#/serverless/functionList',
+                    'https://console.huaweicloud.com/functiongraph/?region=cn-north-4#/serverless/dashboard']
+
         for _url in url_list:
             await page.goto(_url, {'waitUntil': 'load'})
-            await page.setViewport({'width': self.width, 'height': self.height})
-            await asyncio.sleep(5)
-            elements = await page.querySelectorAll('td[style="white-space: normal;"]')
-            for element in elements:
-                a_list = await element.querySelectorAll('a.ti3-action-menu-item')
+            await page.setViewport({'width': self.width + 560, 'height': self.height})
+            await page.waitForSelector('.ti3-action-menu-item', {'timeout': 10000})
+
+            while 1:
+                elements = await page.querySelectorAll('td[style="white-space: normal;"]')
+                if not elements or not len(elements):
+                    self.logger.info('no functions.')
+                    break
+
+                a_list = await elements[0].querySelectorAll('a.ti3-action-menu-item')
                 # content = str(await (await element.getProperty('textContent')).jsonValue()).strip()
                 if len(a_list) == 2:
                     try:
                         await a_list[1].click()
                         await asyncio.sleep(1)
+
+                        _input = await page.querySelector('.modal-confirm-text input[type="text"]')
+                        if not _input:
+                            await asyncio.sleep(3)
+                            continue
+
                         await page.type('.modal-confirm-text input[type="text"]', 'DELETE')
                         await asyncio.sleep(1)
                         await page.click('.ti3-modal-footer .ti3-btn-danger')
                         await asyncio.sleep(1)
+
+                        buttons = await page.querySelectorAll('.ti3-modal-footer [type="button"]')
+                        if buttons and len(buttons):
+                            await buttons[1].click()
+                            await asyncio.sleep(2)
+
                     except Exception as e:
-                        self.logger.exception(e)
+                        self.logger.debug(e)
+                        await asyncio.sleep(1)
+
+            await asyncio.sleep(1)
 
         await page.close()
         await asyncio.sleep(1)
