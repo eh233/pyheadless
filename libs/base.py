@@ -92,10 +92,17 @@ class BaseClient:
 
     async def intercept_request(self, request: Request):
         self.logger.info(request.url)
-        # if request.resourceType in ["image"]:
-        #     await request.abort()
-        # else:
-        await request.continue_()
+        if request.resourceType in ["image"]:
+            await request.abort()
+        else:
+            await request.continue_()
+
+    async def get_cookies(self):
+        cookies = await self.page.cookies()
+        new_cookies = {}
+        for cookie in cookies:
+            new_cookies[cookie['name']] = cookie['value']
+        return new_cookies
 
     async def handler(self, **kwargs):
         raise RuntimeError

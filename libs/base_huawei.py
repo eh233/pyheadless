@@ -60,9 +60,13 @@ class BaseHuaWei(BaseClient):
             self.logger.warning(f"{username} -> {credit}\n")
             if type(credit) == str:
                 credit = int(credit.replace('码豆', '').strip())
+        else:
+            credit = 0
 
-            _id = f'{self.parent_user}_{username}' if self.parent_user else self.username
-            requests.post(f'{self.api}/huawei/save', {'name': _id, 'credit': credit})
+        address_id = await self.get_address()
+        cookies = await self.get_cookies()
+        _id = f'{self.parent_user}_{username}' if self.parent_user else self.username
+        requests.post(f'{self.api}/huawei/save', {'name': _id, 'credit': credit, 'address_id': address_id, 'cookies': cookies})
 
     async def start(self):
         if self.page.url != self.url:
@@ -602,6 +606,23 @@ class BaseHuaWei(BaseClient):
         await self.task_page.click('#deploy-btn')
 
         await asyncio.sleep(15)
+
+    async def get_address(self):
+        page = await self.browser.newPage()
+        url = 'https://devcloud.huaweicloud.com/bonususer/v2/address/queryPageList?page_no=1&page_size=5&_=1620962399910'
+        res = await page.goto(url, {'waitUntil': 'load'})
+        try:
+            data = await res.json()
+            if data.get('error') or not data.get('result'):
+                await asyncio.sleep(1)
+                return ''
+            address = data.get('result').get('result')
+            if type(address) == list:
+                address = address[0]
+                return address.get('id')
+        except Exception as e:
+            self.logger.error(e)
+        return ''
 
     async def delete_function(self):
         page = await self.browser.newPage()
