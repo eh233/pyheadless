@@ -28,7 +28,6 @@ class HuaWei(BaseHuaWei):
 
         utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
         h = int(utc_dt.astimezone(timezone(timedelta(hours=8))).strftime('%H'))
-        self.logger.info(f'now hours: {h}')
 
         if h <= 12:
             await self.check_project()
