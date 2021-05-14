@@ -639,12 +639,16 @@ class BaseHuaWei(BaseClient):
         page = await self.browser.newPage()
 
         url_list = ['https://console.huaweicloud.com/functiongraph/?region=cn-south-1#/serverless/functionList',
-                    'https://console.huaweicloud.com/functiongraph/?region=cn-north-4#/serverless/dashboard']
+                    'https://console.huaweicloud.com/functiongraph/?region=cn-north-4#/serverless/functionList']
 
         for _url in url_list:
             await page.goto(_url, {'waitUntil': 'load'})
             await page.setViewport({'width': self.width + 560, 'height': self.height})
-            await page.waitForSelector('.ti3-action-menu-item', {'timeout': 10000})
+            try:
+                await page.waitForSelector('.ti3-action-menu-item', {'timeout': 10000})
+            except Exception as e:
+                self.logger.debug(e)
+                continue
 
             while 1:
                 elements = await page.querySelectorAll('td[style="white-space: normal;"]')
