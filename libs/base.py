@@ -102,7 +102,7 @@ class BaseClient:
         new_cookies = {}
         for cookie in cookies:
             new_cookies[cookie['name']] = cookie['value']
-        return [new_cookies]
+        return new_cookies
 
     async def handler(self, **kwargs):
         raise RuntimeError
