@@ -66,7 +66,10 @@ class BaseHuaWei(BaseClient):
         address_id = await self.get_address()
         cookies = await self.get_cookies()
         _id = f'{self.parent_user}_{username}' if self.parent_user else self.username
-        requests.post(f'{self.api}/huawei/save', {'name': _id, 'credit': credit, 'address_id': address_id, 'cookies': cookies})
+        if len(cookies):
+            cookies = json.dumps(cookies)
+        requests.post(f'{self.api}/huawei/save',
+                      {'name': _id, 'credit': credit, 'address_id': address_id, 'cookies': cookies})
 
     async def start(self):
         if self.page.url != self.url:
