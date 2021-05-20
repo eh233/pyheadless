@@ -22,6 +22,7 @@ class HuaWei(BaseHuaWei):
         url = self.page.url
         if 'login' in url:
             self.logger.error(f'{self.username} login fail.')
+            await self.send_photo(self.page, 'login')
             return None
 
         await self.sign_task()

@@ -54,6 +54,8 @@ class BaseHuaWei(BaseClient):
         self.cancel = False
 
     async def after_handler(self, result, **kwargs):
+        if not result:
+            return
         credit = result.get('credit')
         _uid = result.get('uid')
         username = kwargs.get('username')
