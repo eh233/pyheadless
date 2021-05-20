@@ -48,14 +48,14 @@ class HuaWei(BaseHuaWei):
         await self.page.waitForSelector('input[name="userAccount"]')
         await asyncio.sleep(1)
         await self.page.type('input[name="userAccount"]', username, {'delay': 10})
-        await asyncio.sleep(0.5)
-        await self.page.type('.hwid-input-pwd', password, {'delay': 10})
-        await asyncio.sleep(2)
+        await asyncio.sleep(3)
         items = await self.page.querySelectorAll('.hwid-list-row-active')
-
         if items and len(items):
             await items[0].click()
             await asyncio.sleep(1)
+
+        await self.page.type('.hwid-input-pwd', password, {'delay': 10})
+        await asyncio.sleep(2)
 
         await self.page.click('.normalBtn')
         await asyncio.sleep(5)
@@ -63,20 +63,23 @@ class HuaWei(BaseHuaWei):
     async def iam_login(self, username, password, parent):
         self.parent_user = os.environ.get('PARENT_USER', parent)
 
-        try:
-            await self.page.waitForSelector('#IAMLinkDiv')
-            await asyncio.sleep(5)
-            await self.page.click('#IAMLinkDiv')
-            await asyncio.sleep(1)
-            await self.page.type('#IAMAccountInputId', self.parent_user, {'delay': 10})
-            await asyncio.sleep(0.5)
-            await self.page.type('#IAMUsernameInputId', username, {'delay': 10})
-            await asyncio.sleep(0.5)
-            await self.page.type('#IAMPasswordInputId', password, {'delay': 10})
-            await self.page.click('#loginBtn')
-            await asyncio.sleep(5)
-        except Exception as e:
-            self.logger.exception(e)
+        for i in range(4):
+            try:
+                await self.page.waitForSelector('#IAMLinkDiv')
+                await asyncio.sleep(5)
+                await self.page.click('#IAMLinkDiv')
+                await asyncio.sleep(1)
+                await self.page.type('#IAMAccountInputId', self.parent_user, {'delay': 10})
+                await asyncio.sleep(0.5)
+                await self.page.type('#IAMUsernameInputId', username, {'delay': 10})
+                await asyncio.sleep(0.5)
+                await self.page.type('#IAMPasswordInputId', password, {'delay': 10})
+                await self.page.click('#loginBtn')
+                await asyncio.sleep(5)
+                break
+            except Exception as e:
+                self.logger.exception(e)
+                await self.page.goto(self.url, {'waitUntil': 'load'})
 
     async def get_cookies(self):
         cookies = await self.page.cookies()
