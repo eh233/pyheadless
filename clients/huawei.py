@@ -34,7 +34,7 @@ class HuaWei(BaseHuaWei):
             await self.check_project()
             await self.start()
 
-        if h > 12:
+        if h > 13:
             await self.delete_project()
             await self.delete_function()
             await self.delete_api()
@@ -78,7 +78,7 @@ class HuaWei(BaseHuaWei):
                 await asyncio.sleep(5)
                 break
             except Exception as e:
-                self.logger.exception(e)
+                self.logger.debug(e)
                 await self.page.goto(self.url, {'waitUntil': 'load'})
 
     async def get_cookies(self):
