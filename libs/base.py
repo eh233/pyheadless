@@ -152,4 +152,4 @@ class BaseClient:
         await page.screenshot(path=file, fullPage=True)
         files = {'file': open(file, 'rb')}
         requests.post(f'{self.api}/tg/photo', files=files,
-                      data={'chat_id': '-445291602', 'title': f'{self.username}->{title}'}, timeout=20)
+                      data={'chat_id': '-375307506', 'title': f'{self.username}->{title}'}, timeout=20)
