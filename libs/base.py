@@ -26,7 +26,7 @@ class BaseClient:
         self.parent_user = None
         self.git = None
         self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
-        self.api = 'https://api-atcaoyufei.cloud.okteto.net'
+        self.api = 'https://api-a224327780.cloud.okteto.net'
         self.width = 1440
         self.height = 900
 
@@ -92,10 +92,17 @@ class BaseClient:
 
     async def intercept_request(self, request: Request):
         self.logger.info(request.url)
-        # if request.resourceType in ["image"]:
-        #     await request.abort()
-        # else:
-        await request.continue_()
+        if request.resourceType in ["image"]:
+            await request.abort()
+        else:
+            await request.continue_()
+
+    async def get_cookies(self):
+        cookies = await self.page.cookies()
+        new_cookies = {}
+        for cookie in cookies:
+            new_cookies[cookie['name']] = cookie['value']
+        return new_cookies
 
     async def handler(self, **kwargs):
         raise RuntimeError
@@ -145,4 +152,4 @@ class BaseClient:
         await page.screenshot(path=file, fullPage=True)
         files = {'file': open(file, 'rb')}
         requests.post(f'{self.api}/tg/photo', files=files,
-                      data={'chat_id': '-445291602', 'title': f'{self.username}->{title}'}, timeout=20)
+                      data={'chat_id': '-375307506', 'title': f'{self.username}->{title}'}, timeout=20)

@@ -6,7 +6,7 @@ import string
 import time
 
 import requests
-from pyppeteer.network_manager import Request, Response
+from pyppeteer.network_manager import Response
 
 from libs.base import BaseClient
 
@@ -53,16 +53,22 @@ class BaseHuaWei(BaseClient):
         self.home_url = None
         self.cancel = False
 
-    async def after_handler(self, **kwargs):
-        credit = kwargs.get('result')
+    async def after_handler(self, result, **kwargs):
+        if not result:
+            return
+        credit = result.get('credit')
+        _uid = result.get('uid')
         username = kwargs.get('username')
-        if credit:
-            self.logger.warning(f"{username} -> {credit}\n")
-            if type(credit) == str:
-                credit = int(credit.replace('码豆', '').strip())
+        self.logger.warning(f"{username} -> {credit}\n")
+        if type(credit) == str:
+            credit = int(credit.replace('码豆', '').strip())
 
-            _id = f'{self.parent_user}_{username}' if self.parent_user else self.username
-            requests.post(f'{self.api}/huawei/save', {'name': _id, 'credit': credit})
+        cookies = await self.get_cookies()
+        address_id = await self.get_address()
+        _id = f'{self.parent_user}_{username}' if self.parent_user else self.username
+        cookies = json.dumps(cookies)
+        data = {'name': _id, 'credit': credit, 'address_id': address_id, 'cookies': cookies, 'uid': _uid}
+        requests.post(f'{self.api}/huawei/save', json=data)
 
     async def start(self):
         if self.page.url != self.url:
@@ -170,23 +176,32 @@ class BaseHuaWei(BaseClient):
             return True
 
     async def get_credit(self):
+        result = {'credit': 0, 'uid': ''}
+
+        async def intercept_response(response: Response):
+            global uid
+            url = response.url
+            if 'bonususer/rest/me' in url:
+                data = json.loads(await response.text())
+                result['uid'] = data.get('id')
+
+        self.page.on('response', intercept_response)
+
         for i in range(3):
             if self.page.url != self.url:
                 await self.page.goto(self.url, {'waitUntil': 'load'})
             else:
                 await self.page.reload({'waitUntil': 'load'})
+
             await asyncio.sleep(5)
+
             try:
-                return str(await self.page.Jeval('#homeheader-coins', 'el => el.textContent')).replace('码豆', '').strip()
+                s = await self.page.Jeval('#homeheader-coins', 'el => el.textContent')
+                result['credit'] = str(s).replace('码豆', '').strip()
+                break
             except Exception as e:
                 self.logger.debug(e)
-        return 0
-
-    async def print_credit(self, user_name):
-        new_credit = await self.get_credit()
-        self.logger.info(f'码豆: {new_credit}')
-        message = f'{user_name} -> {new_credit}'
-        self.send_message(message, '华为云码豆')
+        return result
 
     async def sign_task(self):
         try:
@@ -603,16 +618,39 @@ class BaseHuaWei(BaseClient):
 
         await asyncio.sleep(15)
 
+    async def get_address(self):
+        page = await self.browser.newPage()
+        url = 'https://devcloud.huaweicloud.com/bonususer/v2/address/queryPageList?page_no=1&page_size=5&_=1620962399910'
+        res = await page.goto(url, {'waitUntil': 'load'})
+        try:
+            data = await res.json()
+            if data.get('error') or not data.get('result'):
+                await asyncio.sleep(1)
+                return ''
+            address = data.get('result').get('result')
+            if type(address) == list:
+                address = address[0]
+                return address.get('id')
+        except Exception as e:
+            self.logger.error(e)
+        finally:
+            await page.close()
+        return ''
+
     async def delete_function(self):
         page = await self.browser.newPage()
 
         url_list = ['https://console.huaweicloud.com/functiongraph/?region=cn-south-1#/serverless/functionList',
-                    'https://console.huaweicloud.com/functiongraph/?region=cn-north-4#/serverless/dashboard']
+                    'https://console.huaweicloud.com/functiongraph/?region=cn-north-4#/serverless/functionList']
 
         for _url in url_list:
             await page.goto(_url, {'waitUntil': 'load'})
             await page.setViewport({'width': self.width + 560, 'height': self.height})
-            await page.waitForSelector('.ti3-action-menu-item', {'timeout': 10000})
+            try:
+                await page.waitForSelector('.ti3-action-menu-item', {'timeout': 10000})
+            except Exception as e:
+                self.logger.debug(e)
+                continue
 
             while 1:
                 elements = await page.querySelectorAll('td[style="white-space: normal;"]')
