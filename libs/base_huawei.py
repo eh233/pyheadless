@@ -455,10 +455,14 @@ class BaseHuaWei(BaseClient):
         await asyncio.sleep(5)
 
     async def pipeline_task(self):
-        await asyncio.sleep(1)
+        items = await self.task_page.querySelectorAll('div.devui-table-view tbody tr')
+        if len(items) <= 0:
+            return
+
         await self.task_page.evaluate(
-            '''() =>{ document.querySelector('div.devui-table-view tbody tr:nth-child(1) .icon-run').click(); }''')
+            '''() =>{ document.querySelector('div.devui-table-view tbody tr:nth-child(1) .pipeline-run').click(); }''')
         await asyncio.sleep(1)
+
         await self.task_page.click('.modal.in .devui-btn-primary')
         await asyncio.sleep(1)
         await self.task_page.click('.modal.in .devui-btn-primary')
@@ -551,9 +555,18 @@ class BaseHuaWei(BaseClient):
 
     async def new_test_task(self):
         await asyncio.sleep(2)
-        await self.task_page.click('#global-guidelines .icon-close')
+        try:
+            await self.task_page.click('#global-guidelines .icon-close')
+        except Exception as e:
+            self.logger.debug(e)
+
         await asyncio.sleep(1)
-        await self.task_page.click('.guide-container .icon-close')
+
+        try:
+            await self.task_page.click('.guide-container .icon-close')
+        except Exception as e:
+            self.logger.debug(e)
+
         await asyncio.sleep(1)
         await self.task_page.waitForSelector('div.create-case', {'visible': True})
         await self.task_page.click('div.create-case')
