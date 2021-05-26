@@ -53,8 +53,7 @@ class BaseClient:
             self.password = password
             try:
                 await self.init(**kwargs)
-                result = await self.handler(**kwargs)
-                await self.after_handler(result=result, username=username)
+                await self.handler(**kwargs)
             except Exception as e:
                 self.logger.exception(e)
             finally:
