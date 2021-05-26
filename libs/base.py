@@ -26,7 +26,6 @@ class BaseClient:
         self.parent_user = None
         self.git = None
         self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
-        self.api = 'https://api-a224327780.cloud.okteto.net'
         self.width = 1440
         self.height = 900
 
@@ -128,27 +127,7 @@ class BaseClient:
         await dialog.accept()
 
     @staticmethod
-    def send_message(text, title='Notice'):
-        ding_url = 'https://oapi.dingtalk.com/robot/send'
-        access_token = os.environ.get('DING_TOKEN')
-        _timestamp = str(round(time.time() * 1000))
-        secret = 'SEC25b6b9851cc21443c8b020dc03562a199e3cfecd502062861fc3d2c1ae226a8d'
-        secret_enc = secret.encode('utf-8')
-        string_to_sign_enc = '{}\n{}'.format(_timestamp, secret).encode('utf-8')
-        hmac_code = hmac.new(secret_enc, string_to_sign_enc, digestmod=hashlib.sha256).digest()
-        sign = base64.b64encode(hmac_code)
-        json_data = {'msgtype': 'markdown', 'markdown': {'text': text, 'title': title}}
-        params = {'access_token': access_token, 'timestamp': _timestamp, 'sign': sign}
-        return requests.post(ding_url, params=params, json=json_data).json()
-
-    @staticmethod
     def get_bj_time():
         utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
         return utc_dt.astimezone(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S')
 
-    async def send_photo(self, page, title):
-        file = f'/tmp/{int(time.time())}.png'
-        await page.screenshot(path=file, fullPage=True)
-        files = {'file': open(file, 'rb')}
-        requests.post(f'{self.api}/tg/photo', files=files,
-                      data={'chat_id': '-375307506', 'title': f'{self.username}->{title}'}, timeout=20)
