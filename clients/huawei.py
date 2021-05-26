@@ -29,20 +29,8 @@ class HuaWei(BaseHuaWei):
 
         utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
         h = int(utc_dt.astimezone(timezone(timedelta(hours=8))).strftime('%H'))
+        await self.start()
 
-        if h <= 12:
-            await self.check_project()
-            await self.start()
-
-        if h > 13:
-            await self.delete_project()
-            await self.delete_function()
-            await self.delete_api()
-            await self.delete_api_group()
-
-        # await self.init_account()
-
-        return await self.get_credit()
 
     async def login(self, username, password):
         await self.page.waitForSelector('input[name="userAccount"]')
