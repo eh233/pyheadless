@@ -22,7 +22,6 @@ class HuaWei(BaseHuaWei):
         url = self.page.url
         if 'login' in url:
             self.logger.error(f'{self.username} login fail.')
-            await self.send_photo(self.page, 'login')
             return None
 
         await self.sign_task()
@@ -37,11 +36,6 @@ class HuaWei(BaseHuaWei):
         await asyncio.sleep(1)
         await self.page.type('input[name="userAccount"]', username, {'delay': 10})
         await asyncio.sleep(3)
-        items = await self.page.querySelectorAll('.hwid-list-row-active')
-        if items and len(items):
-            await items[0].click()
-            await asyncio.sleep(1)
-
         await self.page.type('.hwid-input-pwd', password, {'delay': 10})
         await asyncio.sleep(2)
 
