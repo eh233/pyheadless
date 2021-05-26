@@ -53,23 +53,6 @@ class BaseHuaWei(BaseClient):
         self.home_url = None
         self.cancel = False
 
-    async def after_handler(self, result, **kwargs):
-        if not result:
-            return
-        credit = result.get('credit')
-        _uid = result.get('uid')
-        username = kwargs.get('username')
-        self.logger.warning(f"{username} -> {credit}\n")
-        if type(credit) == str:
-            credit = int(credit.replace('码豆', '').strip())
-
-        cookies = await self.get_cookies()
-        address_id = await self.get_address()
-        _id = f'{self.parent_user}_{username}' if self.parent_user else self.username
-        cookies = json.dumps(cookies)
-        data = {'name': _id, 'credit': credit, 'address_id': address_id, 'cookies': cookies, 'uid': _uid}
-        requests.post(f'{self.api}/huawei/save', json=data)
-
     async def start(self):
         if self.page.url != self.url:
             await self.page.goto(self.url, {'waitUntil': 'load'})
@@ -498,7 +481,6 @@ class BaseHuaWei(BaseClient):
             await btn_list[0].click()
             await asyncio.sleep(2)
         except Exception as e:
-            await self.send_photo(self.task_page, 'week_new_project')
             self.logger.exception(e)
             await self.close()
             self.cancel = True
