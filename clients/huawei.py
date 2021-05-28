@@ -32,6 +32,7 @@ class HuaWei(BaseHuaWei):
 
 
     async def login(self, username, password):
+        self.logger.error(f'{self.username} login----.')
         await self.page.waitForSelector('input[name="userAccount"]')
         await asyncio.sleep(1)
         await self.page.type('input[name="userAccount"]', username, {'delay': 10})
