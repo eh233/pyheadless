@@ -29,6 +29,8 @@ class HuaWei(BaseHuaWei):
         utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
         h = int(utc_dt.astimezone(timezone(timedelta(hours=8))).strftime('%H'))
         await self.start()
+        await self.print_credit(self.username)
+        return await self.get_credit()
 
 
     async def login(self, username, password):
@@ -43,6 +45,7 @@ class HuaWei(BaseHuaWei):
         await asyncio.sleep(2)
         await self.page.click('.normalBtn')
         await asyncio.sleep(5)
+
 
     async def iam_login(self, username, password, parent):
         self.parent_user = os.environ.get('PARENT_USER', parent)
