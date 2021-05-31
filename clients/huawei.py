@@ -22,43 +22,30 @@ class HuaWei(BaseHuaWei):
         url = self.page.url
         if 'login' in url:
             self.logger.error(f'{self.username} login fail.')
-            await self.send_photo(self.page, 'login')
             return None
 
         await self.sign_task()
 
         utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
         h = int(utc_dt.astimezone(timezone(timedelta(hours=8))).strftime('%H'))
-
-        if h <= 12:
-            await self.check_project()
-            await self.start()
-
-        if h > 13:
-            await self.delete_project()
-            await self.delete_function()
-            await self.delete_api()
-            await self.delete_api_group()
-
-        # await self.init_account()
-
+        await self.start()
+        await self.print_credit(self.username)
         return await self.get_credit()
+
 
     async def login(self, username, password):
         await self.page.waitForSelector('input[name="userAccount"]')
         await asyncio.sleep(1)
         await self.page.type('input[name="userAccount"]', username, {'delay': 10})
         await asyncio.sleep(3)
-        items = await self.page.querySelectorAll('.hwid-list-row-active')
-        if items and len(items):
-            await items[0].click()
-            await asyncio.sleep(1)
-
         await self.page.type('.hwid-input-pwd', password, {'delay': 10})
         await asyncio.sleep(2)
-
+        await self.page.click('.hwid-list-row-active')
+        await self.page.type('.hwid-input-pwd', password, {'delay': 10})
+        await asyncio.sleep(2)
         await self.page.click('.normalBtn')
         await asyncio.sleep(5)
+
 
     async def iam_login(self, username, password, parent):
         self.parent_user = os.environ.get('PARENT_USER', parent)
