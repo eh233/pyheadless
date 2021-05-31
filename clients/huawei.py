@@ -30,7 +30,6 @@ class HuaWei(BaseHuaWei):
         h = int(utc_dt.astimezone(timezone(timedelta(hours=8))).strftime('%H'))
         await self.start()
         await self.print_credit(self.username)
-        return await self.get_credit()
 
 
     async def login(self, username, password):
