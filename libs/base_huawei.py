@@ -779,6 +779,12 @@ class BaseHuaWei(BaseClient):
         finally:
             await page.close()
 
+    async def print_credit(self, user_name):
+        new_credit = await self.get_credit()
+        self.logger.info(f'码豆: {new_credit}')
+        message = f'{user_name} -> {new_credit}'
+        self.dingding_bot(message, '华为云码豆')
+
     async def delete_api_group(self):
         page = await self.browser.newPage()
         try:
