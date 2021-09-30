@@ -14,11 +14,10 @@ class HuaWei(BaseHuaWei):
         self.cancel = False
 
         self.logger.info(f'{self.username} start login.')
-        # if kwargs.get('iam'):
-        #     await self.iam_login(self.username, self.password, self.parent_user)
-        # else:
-        #     await self.login(self.username, self.password)
-        await self.iam_login(self.username, self.password, self.parent_user)
+        if kwargs.get('iam'):
+            await self.iam_login(self.username, self.password, self.parent_user)
+        else:
+            await self.login(self.username, self.password)
 
         url = self.page.url
         if 'login' in url:
@@ -47,8 +46,7 @@ class HuaWei(BaseHuaWei):
         await asyncio.sleep(5)
 
 
-    # async def iam_login(self, username, password, parent):
-    async def iam_login(self, username, password, parent_user):
+    async def iam_login(self, username, password, parent):
         self.parent_user = os.environ.get('PARENT_USER', parent)
 
         for i in range(4):
@@ -57,8 +55,7 @@ class HuaWei(BaseHuaWei):
                 await asyncio.sleep(5)
                 await self.page.click('#IAMLinkDiv')
                 await asyncio.sleep(1)
-                # await self.page.type('#IAMAccountInputId', self.parent_user, {'delay': 10})
-                await self.page.type('#IAMAccountInputId', parent_user, {'delay': 10})
+                await self.page.type('#IAMAccountInputId', self.parent_user, {'delay': 10})
                 await asyncio.sleep(0.5)
                 await self.page.type('#IAMUsernameInputId', username, {'delay': 10})
                 await asyncio.sleep(0.5)
