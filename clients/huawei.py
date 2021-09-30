@@ -15,9 +15,9 @@ class HuaWei(BaseHuaWei):
 
         self.logger.info(f'{self.username} start login.')
         if kwargs.get('iam'):
-            await self.iam_login(self.username, self.password, self.parent_user)
+            await self.iam_login(self.username, self.pwd, self.parent_user)
         else:
-            await self.login(self.username, self.password)
+            await self.login(self.username, self.pwd)
 
         url = self.page.url
         if 'login' in url:
