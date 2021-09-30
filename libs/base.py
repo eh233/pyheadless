@@ -25,7 +25,7 @@ class BaseClient:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.url = None
         self.username = None
-        self.password = None
+        self.pwd = None
         self.parent_user = None
         self.git = None
         self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
@@ -68,14 +68,14 @@ class BaseClient:
         await self.before_run()
 
         username_list = kwargs.get('username').split(',')
-        password_list = kwargs.get('password').split(',')
+        password_list = kwargs.get('pwd').split(',')
 
         self.logger.warning(username_list)
 
         for i, username in enumerate(username_list):
             password = password_list[0] if len(password_list) == 1 else password_list[i]
             self.username = username
-            self.password = password
+            self.pwd = password
             try:
                 await self.init(**kwargs)
                 await self.handler(**kwargs)
