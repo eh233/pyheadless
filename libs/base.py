@@ -26,7 +26,7 @@ class BaseClient:
         self.url = None
         self.username = None
         self.password = None
-        self.parent_user
+        self.parent_user = None
         self.git = None
         self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
         self.width = 1440
